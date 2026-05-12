@@ -79,8 +79,9 @@
         <button id="saveJsonBtn">Save JSON (download)</button>
         <label class="file-btn">Load JSON <input id="loadJsonInput" type="file" accept="application/json" hidden /></label>
         <label class="file-btn">Import CSV <input id="importCsvInput" type="file" accept=".csv,text/csv" hidden /></label>
+        <label class="file-btn">Import Excel <input id="importExcelInput" type="file" accept=".xlsx,.xls" hidden /></label>
       </div>
-      <small>CSV columns: name, rank, position, section, email, phone, supervisorName</small>
+      <small>CSV/Excel columns recognized: name, rank, position (or duty position), section, email, phone, supervisorName.</small>
     </section>
 
     <section class="panel preview-panel">
@@ -96,6 +97,7 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
