@@ -70,9 +70,17 @@ $("importExcelInput").onchange=async e=>{const f=e.target.files[0];if(!f||!windo
 $("duplicateBtn").onclick=()=>{state.chart={...structuredClone(state.chart),id:crypto.randomUUID(),title:`${state.chart.title||"Chart"} (Copy)`,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};render();};
 $("clearBtn").onclick=()=>{if(confirm("Clear all people and settings?")){state.chart={id:crypto.randomUUID(),title:"",subtitle:"",organizationName:"",chartType:"command",people:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};els.title.value=els.subtitle.value=els.org.value="";els.type.value="command";render();}};
 function generateTestPersonnel(){const templates=[{name:"Alex Carter",rank:"Col",position:"Commander",section:"Command",supervisorName:null},{name:"Jordan Lee",rank:"Lt Col",position:"Vice Commander",section:"Command",supervisorName:"Alex Carter"},{name:"Taylor Morgan",rank:"Maj",position:"Chief of Staff",section:"Command",supervisorName:"Alex Carter"},{name:"Casey Nguyen",rank:"Capt",position:"Operations Officer",section:"Operations",supervisorName:"Taylor Morgan"},{name:"Riley Brooks",rank:"1st Lt",position:"Personnel Officer",section:"Administration",supervisorName:"Taylor Morgan"},{name:"Jamie Patel",rank:"Capt",position:"Safety Officer",section:"Safety",supervisorName:"Alex Carter"},{name:"Morgan Rivera",rank:"2d Lt",position:"Logistics Officer",section:"Logistics",supervisorName:"Taylor Morgan"},{name:"Avery Kim",rank:"C/MSgt",position:"Cadet Superintendent",section:"Cadet Programs",supervisorName:"Jordan Lee"}];
-  const generated=templates.map((row,index)=>({id:crypto.randomUUID(),name:row.name,rank:row.rank,position:row.position,section:row.section,email:"",phone:"",supervisorId:null,sortOrder:Date.now()+index}));
+  const extraPersonnel=Array.from({length:30},(_,index)=>({
+    name:`Test Member ${index+1}`,
+    rank:index%3===0?"2d Lt":index%3===1?"1st Lt":"Capt",
+    position:`Assistant Staff ${index+1}`,
+    section:index%2===0?"Operations":"Administration",
+    supervisorName:index%2===0?"Casey Nguyen":"Riley Brooks"
+  }));
+  const allTemplates=[...templates,...extraPersonnel];
+  const generated=allTemplates.map((row,index)=>({id:crypto.randomUUID(),name:row.name,rank:row.rank,position:row.position,section:row.section,email:"",phone:"",supervisorId:null,sortOrder:Date.now()+index}));
   const byName=Object.fromEntries(generated.map(p=>[p.name,p]));
-  generated.forEach((p,index)=>{const supervisorName=templates[index].supervisorName;if(supervisorName&&byName[supervisorName])p.supervisorId=byName[supervisorName].id;});
+  generated.forEach((p,index)=>{const supervisorName=allTemplates[index].supervisorName;if(supervisorName&&byName[supervisorName])p.supervisorId=byName[supervisorName].id;});
   state.chart.people=generated;
   
   state.editingId=null;
