@@ -65,6 +65,9 @@ The built-in validation checks for:
 - Circular supervisor relationships
 - Missing root node
 - Multiple root nodes (allowed, but flagged for review)
+- Broken/missing supervisor references
+- Self-supervision
+- Span-of-control warnings when a supervisor has more than 7 direct reports (CAP command-structure best-practice signal)
 
 ## Project Structure
 
