@@ -83,20 +83,69 @@ $("importCsvInput").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=
 $("importExcelInput").onchange=async e=>{const f=e.target.files[0];if(!f||!window.XLSX)return;const buf=await f.arrayBuffer();const wb=XLSX.read(buf,{type:"array"});const ws=wb.Sheets[wb.SheetNames[0]];importRows(XLSX.utils.sheet_to_json(ws,{defval:""}));};
 $("duplicateBtn").onclick=()=>{state.chart={...structuredClone(state.chart),id:crypto.randomUUID(),title:`${state.chart.title||"Chart"} (Copy)`,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};render();};
 $("clearBtn").onclick=()=>{if(confirm("Clear all people and settings?")){state.chart={id:crypto.randomUUID(),title:"",subtitle:"",organizationName:"",chartType:"command",people:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};els.title.value=els.subtitle.value=els.org.value="";els.type.value="command";render();}};
-function generateTestPersonnel(){const templates=[{name:"Test Person 01",rank:"Col",position:"Duty Assignment 01",section:"Command",supervisorName:null},{name:"Test Person 02",rank:"Lt Col",position:"Duty Assignment 02",section:"Command",supervisorName:"Test Person 01"},{name:"Test Person 03",rank:"Maj",position:"Duty Assignment 03",section:"Command",supervisorName:"Test Person 01"},{name:"Test Person 04",rank:"Capt",position:"Duty Assignment 04",section:"Operations",supervisorName:"Test Person 03"},{name:"Test Person 05",rank:"1st Lt",position:"Duty Assignment 05",section:"Administration",supervisorName:"Test Person 03"},{name:"Test Person 06",rank:"Capt",position:"Duty Assignment 06",section:"Safety",supervisorName:"Test Person 01"},{name:"Test Person 07",rank:"2d Lt",position:"Duty Assignment 07",section:"Logistics",supervisorName:"Test Person 03"},{name:"Test Person 08",rank:"C/MSgt",position:"Duty Assignment 08",section:"Cadet Programs",supervisorName:"Test Person 02"}];
-  const extraPersonnel=Array.from({length:30},(_,index)=>({
-    name:`Test Person ${String(index+9).padStart(2,"0")}`,
-    rank:index%3===0?"2d Lt":index%3===1?"1st Lt":"Capt",
-    position:`Duty Assignment ${String(index+9).padStart(2,"0")}`,
-    section:index%2===0?"Operations":"Administration",
-    supervisorName:index%2===0?"Test Person 04":"Test Person 05"
+function generateTestPersonnel(){
+  const records=[
+    {name:"Alex Carter",rank:"Col",position:"Commander",section:"Command",supervisorName:null},
+    {name:"Jordan Lee",rank:"Lt Col",position:"Vice Commander",section:"Command",supervisorName:"Alex Carter"},
+    {name:"Morgan Reyes",rank:"Maj",position:"Chief of Staff",section:"Command",supervisorName:"Alex Carter"},
+    {name:"Taylor Brooks",rank:"Maj",position:"Deputy Commander for Cadets",section:"Cadet Programs",supervisorName:"Jordan Lee"},
+    {name:"Casey Bennett",rank:"Maj",position:"Deputy Commander for Seniors",section:"Senior Programs",supervisorName:"Jordan Lee"},
+    {name:"Riley Morgan",rank:"Capt",position:"Executive Officer",section:"Command",supervisorName:"Morgan Reyes"},
+    {name:"Cameron Ellis",rank:"Capt",position:"Command Chief Master Sergeant",section:"Command",supervisorName:"Alex Carter"},
+    {name:"Avery Parker",rank:"Capt",position:"Inspector General",section:"Command",supervisorName:"Morgan Reyes"},
+    {name:"Quinn Harper",rank:"Capt",position:"Equal Opportunity Officer",section:"Command",supervisorName:"Morgan Reyes"},
+    {name:"Blake Sullivan",rank:"Capt",position:"Administrative Officer",section:"Administration",supervisorName:"Riley Morgan"},
+    {name:"Peyton Foster",rank:"Capt",position:"Personnel Officer",section:"Administration",supervisorName:"Riley Morgan"},
+    {name:"Hayden West",rank:"Capt",position:"Professional Development / Education & Training Officer",section:"Administration",supervisorName:"Riley Morgan"},
+    {name:"Emerson Boyd",rank:"1st Lt",position:"Historian",section:"Administration",supervisorName:"Blake Sullivan"},
+    {name:"Dakota Powell",rank:"Capt",position:"Testing Officer",section:"Administration",supervisorName:"Hayden West"},
+    {name:"Kendall Griffin",rank:"Capt",position:"Recruiting & Retention Officer",section:"Administration",supervisorName:"Peyton Foster"},
+    {name:"Rowan Pierce",rank:"Capt",position:"Cadet Programs Officer",section:"Cadet Programs",supervisorName:"Taylor Brooks"},
+    {name:"Skyler Bishop",rank:"1st Lt",position:"Cadet Activities Officer",section:"Cadet Programs",supervisorName:"Taylor Brooks"},
+    {name:"Finley Long",rank:"1st Lt",position:"Leadership Education Officer",section:"Cadet Programs",supervisorName:"Taylor Brooks"},
+    {name:"Sawyer Ramsey",rank:"Capt",position:"Aerospace Education Officer",section:"Aerospace Education",supervisorName:"Casey Bennett"},
+    {name:"Harper Wolfe",rank:"Capt",position:"Character Development Instructor (CDI)",section:"Cadet Programs",supervisorName:"Taylor Brooks"},
+    {name:"Reese McDaniel",rank:"Capt",position:"Chaplain",section:"Chaplain Corps",supervisorName:"Morgan Reyes"},
+    {name:"Lane Duncan",rank:"1st Lt",position:"Fitness Officer",section:"Cadet Programs",supervisorName:"Taylor Brooks"},
+    {name:"Tatum Norris",rank:"1st Lt",position:"Cadet Programs Development Officer",section:"Cadet Programs",supervisorName:"Rowan Pierce"},
+    {name:"River Howard",rank:"1st Lt",position:"Cadet Cyber Education Officer",section:"Cadet Programs",supervisorName:"Rowan Pierce"},
+    {name:"Parker Shaw",rank:"Capt",position:"Emergency Services Officer",section:"Emergency Services",supervisorName:"Casey Bennett"},
+    {name:"Jamie Walters",rank:"Capt",position:"Operations Officer",section:"Operations",supervisorName:"Casey Bennett"},
+    {name:"Logan Kim",rank:"1st Lt",position:"Standardization/Evaluation Officer",section:"Operations",supervisorName:"Jamie Walters"},
+    {name:"Micah Fuller",rank:"1st Lt",position:"Plans and Programs Officer",section:"Operations",supervisorName:"Jamie Walters"},
+    {name:"Elliot Dean",rank:"Capt",position:"Air Operations Branch Director",section:"Operations",supervisorName:"Jamie Walters"},
+    {name:"Noah Flynn",rank:"Capt",position:"Safety Officer",section:"Safety",supervisorName:"Morgan Reyes"},
+    {name:"Sage Kramer",rank:"Capt",position:"External Aerospace Education Officer",section:"Aerospace Education",supervisorName:"Sawyer Ramsey"},
+    {name:"Adrian Lowe",rank:"1st Lt",position:"Internal Aerospace Education Officer",section:"Aerospace Education",supervisorName:"Sawyer Ramsey"},
+    {name:"Bailey Rhodes",rank:"Capt",position:"Communications Officer",section:"Communications",supervisorName:"Casey Bennett"},
+    {name:"Drew Calder",rank:"Capt",position:"Information Technology Officer",section:"Information Technology",supervisorName:"Casey Bennett"},
+    {name:"Kai Mercer",rank:"1st Lt",position:"Cybersecurity / Cyber Education Officer",section:"Information Technology",supervisorName:"Drew Calder"},
+    {name:"Ari Jennings",rank:"2d Lt",position:"Web Security Administrator",section:"Information Technology",supervisorName:"Drew Calder"},
+    {name:"Shawn Patel",rank:"Capt",position:"Logistics Officer",section:"Logistics",supervisorName:"Casey Bennett"},
+    {name:"Jules Tran",rank:"1st Lt",position:"Supply Officer",section:"Logistics",supervisorName:"Shawn Patel"},
+    {name:"Nico Alvarez",rank:"1st Lt",position:"Transportation Officer",section:"Logistics",supervisorName:"Shawn Patel"},
+    {name:"Remy Collins",rank:"1st Lt",position:"Aircraft Maintenance Officer",section:"Logistics",supervisorName:"Shawn Patel"}
+  ];
+
+  const generated=records.map((row,index)=>({
+    id:crypto.randomUUID(),
+    name:row.name,
+    rank:row.rank,
+    position:row.position,
+    section:row.section,
+    email:"",
+    phone:"",
+    supervisorId:null,
+    sortOrder:Date.now()+index
   }));
-  const allTemplates=[...templates,...extraPersonnel];
-  const generated=allTemplates.map((row,index)=>({id:crypto.randomUUID(),name:row.name,rank:row.rank,position:row.position,section:row.section,email:"",phone:"",supervisorId:null,sortOrder:Date.now()+index}));
+
   const byName=Object.fromEntries(generated.map(p=>[p.name,p]));
-  generated.forEach((p,index)=>{const supervisorName=allTemplates[index].supervisorName;if(supervisorName&&byName[supervisorName])p.supervisorId=byName[supervisorName].id;});
+  generated.forEach((p,index)=>{
+    const supervisorName=records[index].supervisorName;
+    if(supervisorName&&byName[supervisorName])p.supervisorId=byName[supervisorName].id;
+  });
+
   state.chart.people=generated;
-  
   state.editingId=null;
   els.form.reset();
   $("personSubmit").textContent="Add Person";
