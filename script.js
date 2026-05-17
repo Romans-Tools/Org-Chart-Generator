@@ -24,7 +24,38 @@ function upsertPerson(e){e.preventDefault();const name=els.name.value.trim(),pos
 els.form.addEventListener("submit",upsertPerson);
 els.tbody.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const id=b.dataset.id;const p=state.chart.people.find(x=>x.id===id);if(b.dataset.act==="del"){state.chart.people=state.chart.people.filter(x=>x.id!==id).map(x=>x.supervisorId===id?{...x,supervisorId:null}:x);touch();render();}else if(p){state.editingId=id;els.name.value=p.name;els.rank.value=p.rank||"";els.position.value=p.position;els.section.value=p.section||"";els.email.value=p.email||"";els.phone.value=p.phone||"";els.sup.value=p.supervisorId||"";$("personSubmit").textContent="Update Person";}});
 function detectCycle(){const map=Object.fromEntries(state.chart.people.map(p=>[p.id,p.supervisorId]));for(const p of state.chart.people){let seen=new Set([p.id]);let cur=map[p.id];while(cur){if(seen.has(cur))return true;seen.add(cur);cur=map[cur];}}return false;}
-$("validateBtn").onclick=()=>{const names=state.chart.people.map(p=>p.name.toLowerCase());const dup=names.find((n,i)=>names.indexOf(n)!==i);const roots=state.chart.people.filter(p=>!p.supervisorId);const noSup=state.chart.people.filter(p=>p.supervisorId===null).length!==1&&state.chart.people.length>1;const cyc=detectCycle();els.validation.textContent=dup?`Duplicate name: ${dup}`:cyc?"Circular relationship detected":roots.length<1?"At least one root required":noSup?"More than one root found (allowed, but check command structure).":"Validation passed."};
+function getCommandLogicFindings(){
+  const issues=[];
+  const warnings=[];
+  const ids=new Set(state.chart.people.map(p=>p.id));
+  const subCount={};
+  state.chart.people.forEach(p=>subCount[p.id]=0);
+  state.chart.people.forEach(p=>{if(p.supervisorId&&ids.has(p.supervisorId))subCount[p.supervisorId]+=1;});
+  const roots=state.chart.people.filter(p=>!p.supervisorId);
+  if(roots.length===0)issues.push("At least one root required.");
+  if(roots.length>1)warnings.push("Multiple roots found; verify this reflects intended command channels.");
+  state.chart.people.forEach(p=>{
+    if(p.supervisorId&&!ids.has(p.supervisorId))issues.push(`${p.name} has a missing supervisor reference.`);
+    if(p.supervisorId===p.id)issues.push(`${p.name} cannot supervise themselves.`);
+    const directs=subCount[p.id]||0;
+    if(directs>7)warnings.push(`${p.name} supervises ${directs} members; CAP guidance typically recommends span of control around 3-7.`);
+  });
+  const topHeavy=roots.filter(r=>(subCount[r.id]||0)===0);
+  if(topHeavy.length&&state.chart.people.length>1)warnings.push(`Root with no direct staff: ${topHeavy.map(p=>p.name).join(", ")}.`);
+  return {issues,warnings};
+}
+$("validateBtn").onclick=()=>{
+  const names=state.chart.people.map(p=>p.name.toLowerCase());
+  const dup=names.find((n,i)=>names.indexOf(n)!==i);
+  const cyc=detectCycle();
+  const {issues,warnings}=getCommandLogicFindings();
+  const checks=[];
+  if(dup)checks.push(`Duplicate name: ${dup}`);
+  if(cyc)checks.push("Circular relationship detected.");
+  checks.push(...issues);
+  if(checks.length){els.validation.textContent=checks.join(" ");return;}
+  els.validation.textContent=warnings.length?`Validation passed with warnings: ${warnings.join(" ")}`:"Validation passed.";
+};
 function download(name,blob){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href);} 
 function exportSVG(){const footer=`Generated ${new Date().toLocaleString()}`;const content=els.preview.innerHTML.replace("</div>",`<p>${footer}</p></div>`);const svg=`<svg xmlns='http://www.w3.org/2000/svg' width='2200' height='1400'><foreignObject width='100%' height='100%'><div xmlns='http://www.w3.org/1999/xhtml' style='font-family:Arial;padding:12px'>${content}</div></foreignObject></svg>`;download(`${(state.chart.title||"org-chart").replace(/\s+/g,"-")}.svg`,new Blob([svg],{type:"image/svg+xml"}));return svg;}
 $("exportSvgBtn").onclick=exportSVG;
